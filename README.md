@@ -1,4 +1,4 @@
-![logo](vaguely_discernible_pancake.png)
+<img src="vaguely_discernible_pancake.png" alt="logo" width="200px">
 
 # Pancake
 
