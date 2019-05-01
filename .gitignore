@@ -1,5 +1,6 @@
 .idea/
 *.iml
+test.html
 
 # Compiled class file
 *.class

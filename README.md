@@ -1,17 +1,16 @@
-<img src="vaguely_discernible_pancake.png" alt="logo" width="200px">
+<img src="vaguely_discernible_pancake.png" alt="logo" width="300px">
 
 # Pancake
 
-WIP MD to HTML compiler.
+Transpiles MapleMarkdown, a subset of Markdown, to HTML. WIP.
 
-### Planned features
-
-* Configurable HTML generation (customize mapping of MD elements to HTML elements)
-* Allow MD extensions (MMD, MathJax, ...)
 
 ### Roadmap
 
-* [ ] Write a Markdown scanner
-    * [ ] Define MD grammar
+* [ ] Define MapleMarkdown grammar
+* [ ] Write MapleMarkdown scanner
 * [ ] Define config file syntax for customization of parser output
 * [ ] Write parser
+* [ ] Extend grammar to support full and/or modified Markdown
+    * [ ] MathJax integration
+    * [ ] Tables
