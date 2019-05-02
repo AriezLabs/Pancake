@@ -7,6 +7,7 @@ MapleMarkdown supports:
 
 * unordered lists
 1. ordered lists
+    * nested lists
 
 > quotes
 
@@ -25,21 +26,19 @@ horizontal rules
 
 ````
 
-## Basic syntax elements
+## Tokens
 
-```
-ascii = (* ASCII *)
-character =
+````
 number = "0" ... "9" { "0" ... "9" }
 newline = "\n"
-space = " " { " " }
-text = { (* ASCII minus "*", "+", "`", ""
-```
+ascii = { (* ASCII character *) }
+text = { (* ascii minus unescaped "*", "+", "`", "_", "\n" *) }
+````
 
 ## MapleMarkdown elements:
 
-```
-markdown = { paragraph | header | quote | codeblock | hr | linkReference | list }
+````
+markdown = { paragraph | header | quote | codeblock | hr | linkReference | list | newline }
 header = "#" { "#" } line
 quote = ">" line
 line = { text | emphasis | inlinecode | link } newline
@@ -47,10 +46,10 @@ paragraph = { line } newline
 codeblock = "```" { ascii } "```"
 emphasis = "_" text "_"
 inlinecode = "`" ascii "`"
-list = { space } ( ordered | unordered ) line
-ordered = number "." space
-unordered = "*" space
+list = ( ordered | unordered ) line
+ordered = number "."
+unordered = "*"
 hr = "---" { "-" } newline
-link = "[" text "]" { space } "[" text "]"
-linkReference = "[" text "]:" { space } text
-```
+link = "[" text "]" "[" text "]"
+linkReference = "[" text "]" ":" text newline
+````
