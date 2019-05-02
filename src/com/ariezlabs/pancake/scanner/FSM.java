@@ -31,8 +31,8 @@ public class FSM<T> {
     }
 
     /**
-     * learn to recognize a symbol
-     * @param symbol symbol literal
+     * learn to recognize a literal
+     * @param symbol literal given as list of ints
      * @param associatedType type of symbol
      */
     public void associate(ArrayList<T> symbol, Token.Type associatedType) {
@@ -48,7 +48,7 @@ public class FSM<T> {
 
         // if symbol is prefix of previously learned symbol
         if (current != null) {
-            assert current.getType() == Token.Type.UNKNOWN : "cannot override previously learned symbol";
+            assert current.getType() == Token.Type.UNKNOWN : "won't override previously learned symbol";
             current.setType(associatedType);
         }
 

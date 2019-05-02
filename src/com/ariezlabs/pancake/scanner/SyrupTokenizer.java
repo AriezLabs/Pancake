@@ -3,12 +3,12 @@ package com.ariezlabs.pancake.scanner;
 import java.io.IOException;
 import java.io.Reader;
 
-public class MapleTokenizer {
+public class SyrupTokenizer {
     private final Reader r;
     private int currentChar;
     private StringBuilder literal;
 
-    public MapleTokenizer(Reader r) {
+    public SyrupTokenizer(Reader r) {
         this.r = r;
     }
 
