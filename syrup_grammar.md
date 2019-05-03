@@ -1,4 +1,4 @@
-# EBNF of Syrup
+# Definition of Syrup
 
 Syrup supports:
 
@@ -37,52 +37,42 @@ horizontal rules
 
 ````
 
-## Symbols
-
-````
-newline = (*empty line*)
-backtick = '`'
-equal = '='
-gt = '>'
-dash = '-'
-colon = ':'
-lbracket = '['
-rbracket = ']'
-asterisk = '*'
-underscore = '_'
-period = '.'
-
-number = '0' ... '9' { '0' ... '9' }
-````
-
-## Syrup elements:
+## EBNF
 
 ````
 syrup         = { paragraph | header | quote | codeblock | hr | linkReference | list | newline }
 
-header        = equal { equal } paragraph
+header        = "=" { "=" } paragraph "=" { "=" }
 
-quote         = gt paragraph
+quote         = ">" { ">" } paragraph
 
-paragraph     = { emphasis | inlinecode | link } newline // TODO... figure this (and syrup definition) out, resubstitute literals here
+paragraph     = { text | emphasis | inlinecode | link } newline
 
-codeblock     = "```" (* any symbol except triple backtick *) "```"
+text          = (* any char except unescaped "_" "*" "`" "[" *)
 
-emphasis      = underscore text underscore
+newline       = (*empty line*) { (*empty line*) }
 
-inlinecode    = backtick (* any symbol except backtick *) backtick
+codeblock     = "```" code "```"
 
-list          = ( ordered | unordered ) line
+inlinecode    = "`" code "`"
 
-ordered       = number period
+code          = (* any char except unescaped "`" *)
 
-unordered     = asterisk
+emphasis      = "_" text "_"
+
+italic        = "*" text "*"
+
+list          = ( ordered | unordered ) paragraph
+
+ordered       = number "."
+
+unordered     = "*"
 
 hr            = "-----" newline
 
-link          = lbracket text rbracket lbracket number rbracket
+link          = "[" text "]" "[" number "]"
 
-linkReference = lbracket number rbracket colon ( url | image )
+linkReference = "[" number "]" ":" ( url | image )
 
 url           = "http://" | "https://"
 
