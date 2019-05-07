@@ -17,16 +17,16 @@ inline `code`
 [reference-style links][1]
 [1]: http://...
 
-[reference-style images][2]
-[2]: path/to/image/
+{reference-style images}{2}
+{2}: path/to/image/
 
-[image galleries with simple layout][3]
-[3]: [basepath/] a b c d [xx x x]
-this will show basepath/a and basepath/b beside each other, c below them and d below c
+{image galleries with simple layout}{3}
+{3}: {basepath/} a b c d {xx x x}
+this will show basepath/a and basepath/b beside each other, c in full width below them and d below c
 basepath and layout description are optional but must be in brackets
 
-[single images resized by width][4]
-[4]: path/to/image/ 400px
+{single images resized by width}{4}
+{4}: path/to/image/ {400px}
 
 ```
 code blocks
@@ -48,19 +48,15 @@ quote         = ">" { ">" } paragraph
 
 paragraph     = { text | emphasis | inlinecode | link } newline
 
-text          = (* any char except unescaped "_" "*" "`" "[" *)
+codeblock     = "```" { newline text } "```"
 
-newline       = (*empty line*) { (*empty line*) }
-
-codeblock     = "```" code "```"
-
-inlinecode    = "`" code "`"
+inlinecode    = "`" { text } "`"
 
 code          = (* any char except unescaped "`" *)
 
-emphasis      = "_" text "_"
+emphasis      = "_" { text } "_"
 
-italic        = "*" text "*"
+italic        = "*" { text } "*"
 
 list          = ( ordered | unordered ) paragraph
 
@@ -81,4 +77,23 @@ image         = basepath text { text } layout
 basepath      = [ "[" text "]" ]
 
 layout        = [ "[" { "x" | " " } "]" ]
+
+````
+
+## Symbols
+
+````
+eq = "="
+gt = ">"
+backtick = "`"
+underscore = "_"
+asterisk = "*"
+period = "."
+colon = ":"
+lbracket = "["
+rbracket = "]"
+number = "1" ... "9" { "1" ... "9" }
+whitespace = " " { " " }
+newline = "\n" { "\n" }
+text = (* any remaining character [ repeated ] *)
 ````

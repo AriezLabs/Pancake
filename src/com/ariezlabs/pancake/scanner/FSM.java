@@ -1,95 +1,113 @@
 package com.ariezlabs.pancake.scanner;
 
 
+import java.io.IOException;
+import java.io.Reader;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class FSM<T> {
-    private State<T> initial;
-    private State<T> current;
-    private ArrayList<T> path;
-    private ArrayList<State<T>> states;
+public class FSM {
+    private State initial;
+    private State current;
+    private Reader in;
+    private StringBuilder path;
+    private HashMap<String, State> states; // to ensure each state has unique labels
+    private ArrayList<Integer> ignoredChars;
 
-    public FSM() {
-        initial = new State<>(Token.Type.SPACE);
-        states = new ArrayList<>();
+    /**
+     * This constructor creates another FSM with hardcoded syntax that parses the language file and initializes
+     * this FSM.
+     * @param language Reader to read from
+     */
+    public FSM(Reader input, Reader language) throws IOException {
+        FSM reader = new FSM();
+        // construct FSM reading FSM...
+        language.close();
         reset();
-    }
-
-    public Token.Type feed(T input) {
-        path.add(input);
-        return current == null ? Token.Type.UNKNOWN : (current = current.getTransition(input)).getType();
-    }
-
-    public ArrayList<T> getPath() {
-        return path;
-    }
-
-    public void reset() {
-        path = new ArrayList<>(100);
-        current = initial;
     }
 
     /**
-     * learn to recognize a literal
-     * @param symbol literal given as list of ints
-     * @param associatedType type of symbol
+     * TODO rework - should be something like nextToken(), use this under the hood at best
+     * process input (do corresponding transition)
+     * if input is in ignoredChars, do nothing
+     * @return type of state reached, null if transition undefined or in undefined state already
      */
-    public void associate(ArrayList<T> symbol, Token.Type associatedType) {
-        reset();
-        State<T> entryPoint = current;
-        int i;
-
-        // if prefix states of symbol are present, move down that path
-        for (i = 0; i < symbol.size() && current != null; i++) {
-            entryPoint = current;
-            feed(symbol.get(i));
-        }
-
-        // if symbol is prefix of previously learned symbol
-        if (current != null) {
-            assert current.getType() == Token.Type.UNKNOWN : "won't override previously learned symbol";
-            current.setType(associatedType);
-        }
-
-        // add chain of states for each remaining item of symbol
-        while (i < symbol.size()) {
-            entryPoint.addTransition(symbol.get(i), new State<>(Token.Type.UNKNOWN));
-            entryPoint = entryPoint.getTransition(symbol.get(i));
-        }
-
-        entryPoint.setType(associatedType);
-        reset();
+    public String nextToken() {
+        int input;
+        // remember to close input on reaching EOF
+        return "";
     }
 
-    public static class State<T> {
-        private HashMap<T, State<T>> transitions;
-        private State<T> defaultTransition;
-        private Token.Type type;
+    public void reset() {
+        path = new StringBuilder(100);
+        current = initial;
+    }
 
-        public State(Token.Type type) {
-            this.type = type;
+    // methods used for constructing FSM from file
+
+    private FSM() {}
+
+    private State putState(String label) {
+        return states.putIfAbsent(label, new State(label));
+    }
+
+    private State putTransition(String fromLabel, String toLabel, Integer onInput) {
+        if (states.containsKey(fromLabel) && states.containsKey(toLabel))
+            return states.get(fromLabel).putTransition(onInput, states.get(toLabel));
+        else
+            throw new IllegalArgumentException(String.format("cannot put transition: unknown state labels %s and/or %s", fromLabel, toLabel));
+    }
+
+    private void putDefaultTransition(String fromLabel, String toLabel) {
+        if (states.containsKey(fromLabel) && states.containsKey(toLabel))
+            states.get(fromLabel).putDefaultTransition(states.get(toLabel));
+        else
+            throw new IllegalArgumentException(String.format("cannot put default transition: unknown state labels %s and/or %s", fromLabel, toLabel));
+    }
+
+    /**
+     * Type parameter for label had to go in order to construct FSM from file
+     */
+    private static class State {
+        private HashMap<Integer, State> transitions;
+        private State defaultTransition;
+        private String label;
+
+        public State(String label) {
+            this.label = label;
             this.transitions = new HashMap<>();
         }
 
-        public State<T> addTransition(T input, State<T> to) {
+        /**
+         * add specific transition on input to state if not yet present
+         * @return state to if no transition was set, or state transition was set to (no change undertaken)
+         */
+        State putTransition(Integer input, State to) {
             return transitions.putIfAbsent(input, to);
         }
 
-        public void setDefaultTransition(State<T> defaultTransition) {
+        /**
+         * set a transition taken on any input, shadowed by specific transitions
+         * @param defaultTransition state to transition to by default
+         */
+        void putDefaultTransition(State defaultTransition) {
+            assert this.defaultTransition == null : "cannot reassign default transition";
             this.defaultTransition = defaultTransition;
         }
 
-        public State<T> getTransition(T in) {
+        /**
+         * @return state we transition to upon reading in, or null if none defined
+         */
+        State getTransition(Integer in) {
             return transitions.getOrDefault(in, defaultTransition);
         }
 
-        public Token.Type getType() {
-            return type;
+        String getLabel() {
+            return label;
         }
 
-        public void setType(Token.Type type) {
-            this.type = type;
+        void setLabel(String label) {
+            this.label = label;
         }
     }
 }

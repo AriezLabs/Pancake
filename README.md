@@ -6,8 +6,9 @@
 
 # Syrup
 
-Simple markup language heavily inspired by [Markdown][1] and [Vimwiki][2] but with extended support for images.
+Simple markup language heavily inspired by [Markdown][1] and [Vimwiki][2].
 More features are planned (see below), but focus is on getting some basic version running for now.
+A FSM for tokenizing Syrup symbols can be found in syrup.fsm and is used for generating a tokenizer in Java.
 
 ### Roadmap
 
@@ -19,6 +20,7 @@ More features are planned (see below), but focus is on getting some basic versio
 * [ ] Write parser
 * [ ] Extend grammar
     * [ ] Integrate MathJax
+    * [ ] Allow resizable images, galleries and layout
     * [ ] Tables
 
 [0]: http://www.ariezlabs.com
