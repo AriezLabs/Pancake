@@ -1,3 +1,1 @@
-# FSM for tokenizing Syrup.
-# Syntax: [WIP]
-# state = name ":" [ defaultTarget ] { input "-" targetState }
+

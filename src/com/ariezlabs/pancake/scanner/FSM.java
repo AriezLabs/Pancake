@@ -1,43 +1,82 @@
 package com.ariezlabs.pancake.scanner;
 
-
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * Not a FSM in the traiditional sense since it deals with concatenated symbols potentially without
+ * a specific separator. Allows accepting states that won't move the current reader position ahead
+ * so that e.g. a text literal can be terminated by a "[" without dropping the "[" by reading ahead.
+ */
 public class FSM {
     private State initial;
     private State current;
     private Reader in;
     private StringBuilder path;
-    private HashMap<String, State> states; // to ensure each state has unique labels
-    private ArrayList<Integer> ignoredChars;
+    private HashMap<String, State> states = new HashMap<>(); // for access and to ensure each state has unique labels
 
     /**
-     * This constructor creates another FSM with hardcoded syntax that parses the language file and initializes
+     * This constructor creates another FSM with a hardcoded language that parses the language file and initializes
      * this FSM.
-     * @param language Reader to read from
+     * @param fsmDefinition Reader to read from
      */
-    public FSM(Reader input, Reader language) throws IOException {
-        FSM reader = new FSM();
-        // construct FSM reading FSM...
-        language.close();
+    public FSM(Reader input, Reader fsmDefinition) throws IOException {
+        FSM reader = new FSM(fsmDefinition);
+
+        reader.putState("initial", 0);
+        reader.putState("dash", 1);
+        reader.putState("newline", 1);
+        reader.putState("colon", 1);
+        reader.putState("pound", 1);
+        reader.putState("eof", 1);
+        reader.putState("lbracket", 1);
+        reader.putState("rbracket", 1);
+        reader.putState("inText", 0);
+        reader.putState("text", 2);
+
+        reader.putTransition("initial", "dash", '-');
+        reader.putTransition("initial", "newline", '\n');
+        reader.putTransition("initial", "colon", ':');
+        reader.putTransition("initial", "pound", '#');
+        reader.putTransition("initial", "eof", -1);
+        reader.putTransition("initial", "lbracket", '[');
+        reader.putTransition("initial", "rbracket", ']');
+
+        reader.putDefaultTransition("initial", "inText");
+        reader.putDefaultTransition("inText", "inText");
+        reader.putTransition("inText", "text", '-', '\n', ':', '#', -1, '[', ']');
+
+        fsmDefinition.close();
         reset();
     }
 
     /**
-     * TODO rework - should be something like nextToken(), use this under the hood at best
      * process input (do corresponding transition)
      * if input is in ignoredChars, do nothing
      * @return type of state reached, null if transition undefined or in undefined state already
      */
-    public String nextToken() {
-        int input;
+    public String nextToken() throws IOException {
+        int readerPosition = in.read();
+
+        //TODO should look something like...
+        while (!current.accepts()) {
+            current = current.getTransition(readerPosition);
+
+            if (current == null) // unrecognized symbol
+                return null;
+
+            if (current.isReadNext())
+                readerPosition = in.read();
+        }
+
         // remember to close input on reaching EOF
-        return "";
+        return current.getLabel();
     }
 
+    /**
+     * Resets FSM to initial state and forgets history. Does not reset reader position.
+     */
     public void reset() {
         path = new StringBuilder(100);
         current = initial;
@@ -45,17 +84,26 @@ public class FSM {
 
     // methods used for constructing FSM from file
 
-    private FSM() {}
-
-    private State putState(String label) {
-        return states.putIfAbsent(label, new State(label));
+    private FSM(Reader fsmDefinition) {
+        this.in = fsmDefinition;
+        reset();
     }
 
-    private State putTransition(String fromLabel, String toLabel, Integer onInput) {
+    /**
+     * @param label label of new state
+     * @param type 0: nonaccepting state, 1: accepting state, 2: accepting state + do not move reader position
+     */
+    private void putState(String label, int type) {
+        State toPut = new State(label, type >>> 1 == 1, (type & 1) == 1);
+        assert states.putIfAbsent(label, toPut) == toPut : String.format("state with label %s already present", label);
+    }
+
+    private void putTransition(String fromLabel, String toLabel, int... onInput) {
         if (states.containsKey(fromLabel) && states.containsKey(toLabel))
-            return states.get(fromLabel).putTransition(onInput, states.get(toLabel));
+            for (int input : onInput)
+                states.get(fromLabel).putTransition(input, states.get(toLabel));
         else
-            throw new IllegalArgumentException(String.format("cannot put transition: unknown state labels %s and/or %s", fromLabel, toLabel));
+            throw new IllegalArgumentException(String.format("cannot put transition: unknown states %s and/or %s", fromLabel, toLabel));
     }
 
     private void putDefaultTransition(String fromLabel, String toLabel) {
@@ -65,49 +113,9 @@ public class FSM {
             throw new IllegalArgumentException(String.format("cannot put default transition: unknown state labels %s and/or %s", fromLabel, toLabel));
     }
 
-    /**
-     * Type parameter for label had to go in order to construct FSM from file
-     */
-    private static class State {
-        private HashMap<Integer, State> transitions;
-        private State defaultTransition;
-        private String label;
-
-        public State(String label) {
-            this.label = label;
-            this.transitions = new HashMap<>();
-        }
-
-        /**
-         * add specific transition on input to state if not yet present
-         * @return state to if no transition was set, or state transition was set to (no change undertaken)
-         */
-        State putTransition(Integer input, State to) {
-            return transitions.putIfAbsent(input, to);
-        }
-
-        /**
-         * set a transition taken on any input, shadowed by specific transitions
-         * @param defaultTransition state to transition to by default
-         */
-        void putDefaultTransition(State defaultTransition) {
-            assert this.defaultTransition == null : "cannot reassign default transition";
-            this.defaultTransition = defaultTransition;
-        }
-
-        /**
-         * @return state we transition to upon reading in, or null if none defined
-         */
-        State getTransition(Integer in) {
-            return transitions.getOrDefault(in, defaultTransition);
-        }
-
-        String getLabel() {
-            return label;
-        }
-
-        void setLabel(String label) {
-            this.label = label;
-        }
+    private void setInitial(State initial) {
+        assert this.initial == null : "cannot reassign initial state";
+        this.initial = initial;
     }
+
 }

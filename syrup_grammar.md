@@ -39,6 +39,9 @@ horizontal rules
 
 ## EBNF
 
+TODO: Whitespace is a symbol. No "separator" between words (and hence states: lookahead of 1, recognize beginning of
+next word and transition to accepting state accordingly)
+
 ````
 syrup         = { paragraph | header | quote | codeblock | hr | linkReference | list | newline }
 
