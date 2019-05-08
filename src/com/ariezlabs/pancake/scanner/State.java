@@ -3,30 +3,24 @@ package com.ariezlabs.pancake.scanner;
 import java.util.HashMap;
 
 /**
- * Type parameter for label had to go in order to construct FSM from file
+ * @param <T> input type
  */
-class State {
-    private HashMap<Integer, State> transitions;
-    private State defaultTransition;
+class State<T> {
+    private HashMap<T, State<T>> transitions;
+    private State<T> defaultTransition;
     private String label;
-    private boolean accept;
-    private boolean readNext;
+    private int type;
 
-    public State(String label, boolean accept, boolean readNext) {
-        // if readNext is false, accept must be true, else  we'll run into a problem
-        assert !readNext || accept : "non-accepting state cannot not read next";
-
+    State (String label, int type) {
         this.label = label;
-        this.accept = accept;
-        this.readNext = readNext;
+        this.type = type;
         this.transitions = new HashMap<>();
     }
 
     /**
      * add specific transition on input to state if not yet present
-     * @return state to if no transition was set, or state transition was set to (no change undertaken)
      */
-    void putTransition(Integer input, State to) {
+    void putTransition(T input, State<T> to) {
         assert transitions.putIfAbsent(input, to) == to : String.format("transition to state %s on %d already present", to.getLabel(), input);
     }
 
@@ -34,7 +28,7 @@ class State {
      * set a transition taken on any input, shadowed by specific transitions
      * @param defaultTransition state to transition to by default
      */
-    void putDefaultTransition(State defaultTransition) {
+    void putDefaultTransition(State<T> defaultTransition) {
         assert this.defaultTransition == null : "cannot reassign default transition";
         this.defaultTransition = defaultTransition;
     }
@@ -42,7 +36,7 @@ class State {
     /**
      * @return state we transition to upon reading in, or null if none defined
      */
-    State getTransition(Integer in) {
+    State<T> getTransition(T in) {
         return transitions.getOrDefault(in, defaultTransition);
     }
 
@@ -55,10 +49,22 @@ class State {
     }
 
     boolean isReadNext() {
-        return readNext;
+        return type == 2;
     }
 
     boolean accepts() {
-        return accept;
+        return type >= 1;
+    }
+
+    int getType() {
+        return type;
+    }
+
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(getLabel()).append(":").append(getType()).append(":");
+        for (T key : transitions.keySet())
+            sb.append(key.toString()).append("-").append(transitions.get(key).getLabel());
+        return sb.toString();
     }
 }
