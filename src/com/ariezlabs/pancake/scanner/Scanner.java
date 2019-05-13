@@ -37,6 +37,7 @@ public class Scanner {
         }
 
         // remember to close input on reaching EOF
+        fsm.reset();
         return fsm.currentStateLabel();
     }
 

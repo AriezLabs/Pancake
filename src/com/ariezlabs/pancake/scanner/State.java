@@ -6,10 +6,11 @@ import java.util.HashMap;
  * @param <T> input type
  */
 class State<T> {
-    private HashMap<T, State<T>> transitions;
+    private final HashMap<T, State<T>> transitions;
+    private final String label;
+    private final int type;
+
     private State<T> defaultTransition;
-    private String label;
-    private int type;
 
     State (String label, int type) {
         this.label = label;
@@ -21,7 +22,7 @@ class State<T> {
      * add specific transition on input to state if not yet present
      */
     void putTransition(T input, State<T> to) {
-        assert transitions.putIfAbsent(input, to) == to : String.format("transition to state %s on %d already present", to.getLabel(), input);
+        assert transitions.putIfAbsent(input, to) == to : String.format("transition to state %s on %s already present", to.getLabel(), input.toString());
     }
 
     /**
@@ -44,10 +45,6 @@ class State<T> {
         return label;
     }
 
-    void setLabel(String label) {
-        this.label = label;
-    }
-
     boolean isReadNext() {
         return type == 2;
     }
@@ -56,15 +53,13 @@ class State<T> {
         return type >= 1;
     }
 
-    int getType() {
-        return type;
-    }
-
     public String toString() {
         StringBuilder sb = new StringBuilder();
-        sb.append(getLabel()).append(":").append(getType()).append(":");
+        sb.append(getLabel()).append(":").append(type).append(":");
+        if (defaultTransition != null)
+            sb.append("[").append(defaultTransition.getLabel()).append("]");
         for (T key : transitions.keySet())
-            sb.append(key.toString()).append("-").append(transitions.get(key).getLabel());
+            sb.append(key.toString()).append("-").append(transitions.get(key).getLabel()).append(",");
         return sb.toString();
     }
 }

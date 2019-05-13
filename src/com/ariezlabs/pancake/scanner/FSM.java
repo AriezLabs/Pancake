@@ -2,8 +2,8 @@ package com.ariezlabs.pancake.scanner;
 
 import java.io.IOException;
 import java.io.Reader;
-import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * Not a FSM in the traditional sense since it deals with concatenated symbols potentially without
@@ -15,7 +15,7 @@ import java.util.HashMap;
 class FSM<T> {
     private State<T> initial;
     private State<T> current;
-    private ArrayList<T> path;
+    private LinkedList<T> path;
     private HashMap<String, State<T>> states = new HashMap<>(); // for access and to ensure each state has unique labels
 
     /**
@@ -68,7 +68,7 @@ class FSM<T> {
 
         Scanner scanner = new Scanner(fsmDefinition, scannerFsm);
 
-        // TODO setup parser - need to allow side effects on transitions?
+        // TODO setup parser - need to allow side effects on transitions
 
         fsmDefinition.close();
         reset();
@@ -101,11 +101,11 @@ class FSM<T> {
      * Resets FSM to initial state and forgets history. Does not reset reader position.
      */
     void reset() {
-        path = new ArrayList<>(100);
+        path = new LinkedList<>();
         current = initial;
     }
 
-    ArrayList<T> getPath() {
+    LinkedList<T> getPath() {
         return path;
     }
 

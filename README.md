@@ -17,7 +17,7 @@ with the following hardcoded language:
 ```
 fsm            = { state | comment | newline }
 
-state          = label ":" type ":" [ "[" defaultTarget "]" ] { input "-" target } newline
+state          = label type [ defaultTarget ] { input target } newline
 
 comment        = "#" text newline
 
